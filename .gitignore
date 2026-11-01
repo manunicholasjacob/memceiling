@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+*.so
+*.dll
+*.dylib
+*.obj
+*.pyd
+build/
+dist/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+membw-*.json

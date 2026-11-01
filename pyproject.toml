@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "membw"
+dynamic = ["version"]
+description = "Measure a machine's achieved memory bandwidth ceiling, with a provenance record and a refusal to report an invalid number."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Manu Nicholas Jacob", email = "manunicholasjacob@gmail.com" },
+]
+maintainers = [
+    { name = "Manu Nicholas Jacob", email = "manunicholasjacob@gmail.com" },
+]
+keywords = [
+    "memory bandwidth",
+    "roofline",
+    "stream",
+    "benchmark",
+    "provenance",
+    "reproducibility",
+    "big.LITTLE",
+    "arm",
+    "performance",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: C",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: System :: Benchmark",
+    "Topic :: System :: Hardware",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "numpy>=1.20",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/manunicholasjacob/membw"
+Repository = "https://github.com/manunicholasjacob/membw"
+Issues = "https://github.com/manunicholasjacob/membw/issues"
+Changelog = "https://github.com/manunicholasjacob/membw/blob/main/CHANGELOG.md"
+
+[project.scripts]
+membw = "membw.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "membw.version.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+# The C kernel source ships inside the wheel so that `membw build-c` can
+# compile it on the target machine. It is source, not a built artifact, so
+# the wheel stays pure Python and portable.
+membw = ["_ckernels.c"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,6 @@
+# Store text with LF in the repository. The composite Action runs bash with
+# a heredoc on Linux runners, where CRLF would break it.
+* text=auto eol=lf
+*.c text eol=lf
+*.py text eol=lf
+*.yml text eol=lf

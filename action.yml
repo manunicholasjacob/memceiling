@@ -1,0 +1,249 @@
+name: "membw memory bandwidth ceiling"
+description: >-
+  Measure the real memory bandwidth ceiling of this runner and record it into
+  the build, so performance numbers from CI can be interpreted against a
+  measured denominator instead of a vendor's theoretical peak.
+author: "Manu Nicholas Jacob"
+
+branding:
+  icon: "bar-chart-2"
+  color: "blue"
+
+inputs:
+  cpus:
+    description: >-
+      CPUs to measure on, as a list such as 0-7,12. Empty means every online
+      CPU, which is what a runner usually wants.
+    required: false
+    default: ""
+  code-path:
+    description: >-
+      Which kernels to use: auto, c, or numpy. 'auto' compiles the C kernels
+      when a compiler is present and falls back to numpy otherwise, labelling
+      whichever it used. 'c' fails rather than falling back.
+    required: false
+    default: "auto"
+  repeats:
+    description: "Timed repetitions per kernel; the best is reported."
+    required: false
+    default: "5"
+  min-run-seconds:
+    description: >-
+      Shortest timed region treated as stable. membw calibrates the number of
+      passes per repetition to reach this.
+    required: false
+    default: "0.2"
+  llc-margin:
+    description: >-
+      Each array must be at least this multiple of the summed last-level
+      cache. The default of 4 is STREAM's run rule.
+    required: false
+    default: "4"
+  memory-config:
+    description: >-
+      Optional RATE_MT_S:DATA_WIDTH_BITS:MODULES override for the theoretical
+      peak, for example 4800:64:2. Use it when the runner does not expose
+      SMBIOS. It is recorded as an operator override, never as a reading.
+    required: false
+    default: ""
+  per-cluster:
+    description: >-
+      'auto' measures each cluster separately when the runner is
+      heterogeneous. 'true' always does, 'false' never does.
+    required: false
+    default: "auto"
+  include-strided:
+    description: "Also measure a cache-line strided read (a different byte convention)."
+    required: false
+    default: "false"
+  output-path:
+    description: "Where to write the provenance envelope as JSON."
+    required: false
+    default: "membw-envelope.json"
+  fail-on-invalid:
+    description: >-
+      Fail the step when the verdict is not PASS. Default false, so a noisy
+      shared runner records its figure and its reasons without breaking the
+      build. The verdict is always in the outputs either way.
+    required: false
+    default: "false"
+  install-source:
+    description: >-
+      Where to install membw from: 'action' uses the copy of membw at this
+      action's own ref, which is the reproducible choice; 'pypi' installs the
+      published release.
+    required: false
+    default: "action"
+
+outputs:
+  verdict:
+    description: "PASS, INVALID, UNSUPPORTED or UNKNOWN."
+    value: ${{ steps.membw.outputs.verdict }}
+  ceiling-gb-s:
+    description: "Highest achieved figure across the read, copy and triad kernels."
+    value: ${{ steps.membw.outputs.ceiling-gb-s }}
+  ceiling-kernel:
+    description: "Which kernel produced the ceiling."
+    value: ${{ steps.membw.outputs.ceiling-kernel }}
+  read-gb-s:
+    description: "Achieved sequential read bandwidth."
+    value: ${{ steps.membw.outputs.read-gb-s }}
+  copy-gb-s:
+    description: "Achieved STREAM-convention Copy bandwidth."
+    value: ${{ steps.membw.outputs.copy-gb-s }}
+  triad-gb-s:
+    description: "Achieved STREAM-convention Triad bandwidth."
+    value: ${{ steps.membw.outputs.triad-gb-s }}
+  theoretical-peak-gb-s:
+    description: "Derived theoretical peak, or empty when it is UNKNOWN."
+    value: ${{ steps.membw.outputs.theoretical-peak-gb-s }}
+  fraction-percent:
+    description: "Ceiling as a percentage of the theoretical peak, or empty."
+    value: ${{ steps.membw.outputs.fraction-percent }}
+  code-path:
+    description: "Which code path produced the figures: c or numpy."
+    value: ${{ steps.membw.outputs.code-path }}
+  envelope-path:
+    description: "Path to the written provenance envelope."
+    value: ${{ steps.membw.outputs.envelope-path }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install membw
+      shell: bash
+      run: |
+        set -eu
+        if [ "${{ inputs.install-source }}" = "pypi" ]; then
+          python -m pip install --disable-pip-version-check --quiet membw
+        else
+          python -m pip install --disable-pip-version-check --quiet \
+            "$GITHUB_ACTION_PATH"
+        fi
+        python -c "import membw; print('membw', membw.__version__)"
+
+    - name: Build the compiled kernels
+      if: inputs.code-path != 'numpy'
+      shell: bash
+      run: |
+        # A runner without a C toolchain is a normal case, not a failure:
+        # membw falls back to the numpy path and labels every figure with
+        # the path that produced it.
+        python -m membw.cli build-c || \
+          echo "membw: no compiled kernels on this runner, using the numpy path"
+
+    - name: Measure the memory bandwidth ceiling
+      id: membw
+      shell: bash
+      run: |
+        set -u
+        args="--json --out ${{ inputs.output-path }} --exit-zero"
+        args="$args --code-path ${{ inputs.code-path }}"
+        args="$args --repeats ${{ inputs.repeats }}"
+        args="$args --min-run-seconds ${{ inputs.min-run-seconds }}"
+        args="$args --llc-margin ${{ inputs.llc-margin }}"
+        if [ -n "${{ inputs.cpus }}" ]; then
+          args="$args --cpus ${{ inputs.cpus }}"
+        fi
+        if [ -n "${{ inputs.memory-config }}" ]; then
+          args="$args --memory-config ${{ inputs.memory-config }}"
+        fi
+        case "${{ inputs.per-cluster }}" in
+          true)  args="$args --per-cluster" ;;
+          false) args="$args --no-per-cluster" ;;
+        esac
+        if [ "${{ inputs.include-strided }}" = "true" ]; then
+          args="$args --include-strided"
+        fi
+
+        # shellcheck disable=SC2086
+        python -m membw.cli run $args > /dev/null
+
+        python - "${{ inputs.output-path }}" <<'PY'
+        import json, os, sys
+
+        with open(sys.argv[1], "r", encoding="ascii") as handle:
+            envelope = json.load(handle)
+
+        m = envelope.get("measurement") or {}
+        achieved = m.get("achieved") or {}
+        peak = m.get("theoretical_peak") or {}
+        code_path = m.get("code_path") or {}
+
+        def text(value):
+            return "" if value is None else str(value)
+
+        pairs = [
+            ("verdict", envelope.get("verdict")),
+            ("ceiling-gb-s", achieved.get("ceiling_gb_s")),
+            ("ceiling-kernel", achieved.get("ceiling_kernel")),
+            ("read-gb-s", achieved.get("read_gb_s")),
+            ("copy-gb-s", achieved.get("copy_gb_s")),
+            ("triad-gb-s", achieved.get("triad_gb_s")),
+            ("theoretical-peak-gb-s", peak.get("peak_gb_s")),
+            ("fraction-percent", achieved.get("fraction_of_theoretical_percent")),
+            ("code-path", code_path.get("used")),
+            ("envelope-path", sys.argv[1]),
+        ]
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="ascii") as out:
+            for key, value in pairs:
+                out.write("%s=%s\n" % (key, text(value)))
+
+        summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+        if summary_path:
+            lines = [
+                "### membw memory bandwidth ceiling",
+                "",
+                "**verdict: %s**" % envelope.get("verdict"),
+                "",
+                "| metric | value |",
+                "| --- | --- |",
+                "| ceiling | %s GB/s (%s kernel) |"
+                % (
+                    text(achieved.get("ceiling_gb_s")) or "UNKNOWN",
+                    text(achieved.get("ceiling_kernel")) or "none",
+                ),
+                "| read | %s GB/s |" % (text(achieved.get("read_gb_s")) or "UNKNOWN"),
+                "| copy (STREAM) | %s GB/s |"
+                % (text(achieved.get("copy_gb_s")) or "UNKNOWN"),
+                "| triad (STREAM) | %s GB/s |"
+                % (text(achieved.get("triad_gb_s")) or "UNKNOWN"),
+                "| theoretical peak | %s GB/s (%s) |"
+                % (
+                    text(peak.get("peak_gb_s")) or "UNKNOWN",
+                    text(peak.get("status")),
+                ),
+                "| achieved fraction | %s%% |"
+                % (text(achieved.get("fraction_of_theoretical_percent")) or "UNKNOWN"),
+                "| code path | %s |" % (text(code_path.get("used")) or "none"),
+                "| formula | `%s` |" % text(peak.get("formula")),
+                "",
+            ]
+            reasons = envelope.get("reasons") or []
+            if reasons:
+                lines.append("#### Reasons")
+                lines.append("")
+                for item in reasons:
+                    lines.append(
+                        "- `%s` (%s): %s"
+                        % (item["code"], item["severity"], item["detail"])
+                    )
+                lines.append("")
+            unreadable = envelope.get("unreadable") or []
+            if unreadable:
+                lines.append("#### Could not read (%d)" % len(unreadable))
+                lines.append("")
+                for item in unreadable:
+                    lines.append("- %s" % item)
+                lines.append("")
+            with open(summary_path, "a", encoding="utf-8") as out:
+                out.write("\n".join(lines) + "\n")
+        PY
+
+    - name: Fail on a non-PASS verdict
+      if: inputs.fail-on-invalid == 'true' && steps.membw.outputs.verdict != 'PASS'
+      shell: bash
+      run: |
+        echo "membw verdict is ${{ steps.membw.outputs.verdict }}, not PASS." >&2
+        echo "See ${{ inputs.output-path }} for the reasons." >&2
+        exit 1

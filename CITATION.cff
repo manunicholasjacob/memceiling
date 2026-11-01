@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use membw in published work, please cite it as below."
+title: "membw: achieved memory bandwidth with a provenance record"
+abstract: >-
+  membw measures the achieved memory bandwidth ceiling of a machine and
+  reports it against the theoretical peak derived from the readable memory
+  configuration. Each run carries a provenance record naming the code path,
+  the CPU affinity mask actually in effect, the frequency governor, the
+  working set relative to the last-level cache, and every source that could
+  not be read. membw reports per CPU cluster as well as in aggregate, and
+  refuses to present a figure taken under conditions that invalidate it.
+type: software
+version: "0.1.0"
+date-released: "2026-11-01"
+license: MIT
+repository-code: "https://github.com/manunicholasjacob/membw"
+url: "https://github.com/manunicholasjacob/membw"
+keywords:
+  - memory bandwidth
+  - roofline
+  - benchmark provenance
+  - reproducibility
+  - heterogeneous multiprocessing
+authors:
+  - family-names: "Jacob"
+    given-names: "Manu Nicholas"
+    orcid: "https://orcid.org/0009-0007-6589-6572"
+    affiliation: "Independent Researcher"
