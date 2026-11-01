@@ -14,3 +14,6 @@ dist/
 .venv/
 venv/
 membw-*.json
+
+# Crash dumps from tooling on Windows
+*.stackdump
