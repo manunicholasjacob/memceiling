@@ -1,0 +1,20 @@
+version: 2
+updates:
+  # The actions used by this repository's own workflows. This is the ecosystem that
+  # matters here, because the package itself has no required runtime dependencies.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "ci"
+    open-pull-requests-limit: 3
+
+  # Development and test dependencies only.
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "deps"
+    open-pull-requests-limit: 3

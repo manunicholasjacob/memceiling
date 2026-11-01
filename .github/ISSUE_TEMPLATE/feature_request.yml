@@ -1,0 +1,30 @@
+name: Feature or change request
+description: Propose something this should do that it does not
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please describe the problem before the solution. A concrete case where the current
+        behaviour was not enough is worth more than a proposed API.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What were you trying to find out or prevent, and where did this tool stop being useful?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you have in mind
+      description: Optional. If you already have a design or a patch in mind, describe it here.
+    validations:
+      required: false
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Before you file
+      options:
+        - label: I have read the Limitations section of the README and this is not already listed there as a deliberate exclusion.
+          required: true
