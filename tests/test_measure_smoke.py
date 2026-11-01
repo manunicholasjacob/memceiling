@@ -10,9 +10,9 @@ import math
 
 import pytest
 
-from membw import MeasureOptions, measure
-from membw.kernels import PATH_C, PATH_NUMPY
-from membw.schema import SEVERITIES, VERDICTS
+from memceiling import MeasureOptions, measure
+from memceiling.kernels import PATH_C, PATH_NUMPY
+from memceiling.schema import SEVERITIES, VERDICTS
 
 MIB = 1024 * 1024
 
@@ -180,7 +180,7 @@ class TestRefusalEndToEnd:
             MeasureOptions(
                 cpus=[0],
                 code_path=PATH_C,
-                c_library="/nonexistent/path/to/membw_ckernels.so",
+                c_library="/nonexistent/path/to/memceiling_ckernels.so",
                 allow_c_build=False,
                 reps=1,
                 bytes_per_array=2 * MIB,
@@ -218,6 +218,6 @@ class TestOptionsAreRecorded:
         assert options["cpus_requested"] == "0"
         assert options["set_governor"] is None
 
-    def test_membw_does_not_change_the_governor_by_default(self, tiny_numpy_run):
+    def test_memceiling_does_not_change_the_governor_by_default(self, tiny_numpy_run):
         conditions = tiny_numpy_run.envelope["measurement"]["conditions"]
         assert conditions["governor_change_requested"] is None

@@ -6,7 +6,7 @@ these tests drive it with explicit byte counts rather than a real machine.
 
 import pytest
 
-from membw.kernels import (
+from memceiling.kernels import (
     CACHE_LINE_BYTES,
     DEFAULT_LLC_MARGIN,
     ELEMENT_BYTES,
@@ -60,7 +60,7 @@ class TestRefusalCases:
 
     def test_a_memory_cap_that_breaks_the_margin_is_reported(self):
         # A 64 MiB LLC needs 256 MiB per array, but only 300 MiB is available
-        # and membw will use at most half of it across three arrays.
+        # and memceiling will use at most half of it across three arrays.
         plan = plan_buffers(llc_total_bytes=64 * MIB, available_bytes=300 * MIB)
         assert plan.memory_limited is True
         assert plan.satisfies_margin is False

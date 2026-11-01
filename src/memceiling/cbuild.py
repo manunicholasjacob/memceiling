@@ -1,6 +1,6 @@
 """Build and load the optional compiled kernel library.
 
-The compiled path is optional on purpose: membw must install and run on a
+The compiled path is optional on purpose: memceiling must install and run on a
 machine with no C toolchain, and must say which path produced a number. This
 module is the whole of the "is there a compiler" question, so the rest of
 the code only ever asks load_c_kernels() and gets either a library or None.
@@ -31,22 +31,22 @@ def source_path() -> str:
 
 
 def cache_dir() -> str:
-    """Directory where membw caches the built library."""
-    override = os.environ.get("MEMBW_CACHE_DIR")
+    """Directory where memceiling caches the built library."""
+    override = os.environ.get("MEMCEILING_CACHE_DIR")
     if override:
         return override
     if platform.system() == "Windows":
         base = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~")
-        return os.path.join(base, "membw", "cache")
+        return os.path.join(base, "memceiling", "cache")
     base = os.environ.get("XDG_CACHE_HOME") or os.path.join(
         os.path.expanduser("~"), ".cache"
     )
-    return os.path.join(base, "membw")
+    return os.path.join(base, "memceiling")
 
 
 def library_filename() -> str:
     suffix = {"Windows": ".dll", "Darwin": ".dylib"}.get(platform.system(), ".so")
-    return "membw_ckernels-%s-%s-abi%d%s" % (
+    return "memceiling_ckernels-%s-%s-abi%d%s" % (
         platform.system().lower(),
         platform.machine().lower().replace(" ", "_") or "unknown",
         ABI_VERSION,
@@ -60,7 +60,7 @@ def default_library_path() -> str:
 
 @dataclass
 class BuildReport:
-    """What happened when membw tried to build the compiled kernels."""
+    """What happened when memceiling tried to build the compiled kernels."""
 
     ok: bool
     library_path: str | None = None
@@ -155,7 +155,7 @@ def build_c_kernels(output_path: str | None = None, force: bool = False) -> Buil
     """Compile _ckernels.c into a shared library.
 
     Returns a BuildReport. Never raises on a compiler failure: a missing or
-    broken toolchain is a condition to be reported, since membw still has a
+    broken toolchain is a condition to be reported, since memceiling still has a
     working numpy path.
     """
     src = source_path()
@@ -257,29 +257,29 @@ def _apply_signatures(lib) -> None:
     c_size = ctypes.c_size_t
     p_double = ctypes.POINTER(ctypes.c_double)
 
-    lib.membw_abi_version.restype = ctypes.c_int
-    lib.membw_abi_version.argtypes = []
+    lib.memceiling_abi_version.restype = ctypes.c_int
+    lib.memceiling_abi_version.argtypes = []
 
-    lib.membw_read.restype = c_double
-    lib.membw_read.argtypes = [p_double, c_size]
+    lib.memceiling_read.restype = c_double
+    lib.memceiling_read.argtypes = [p_double, c_size]
 
-    lib.membw_read_strided.restype = c_double
-    lib.membw_read_strided.argtypes = [p_double, c_size, c_size]
+    lib.memceiling_read_strided.restype = c_double
+    lib.memceiling_read_strided.argtypes = [p_double, c_size, c_size]
 
-    lib.membw_copy.restype = None
-    lib.membw_copy.argtypes = [p_double, p_double, c_size]
+    lib.memceiling_copy.restype = None
+    lib.memceiling_copy.argtypes = [p_double, p_double, c_size]
 
-    lib.membw_scale.restype = None
-    lib.membw_scale.argtypes = [p_double, p_double, c_double, c_size]
+    lib.memceiling_scale.restype = None
+    lib.memceiling_scale.argtypes = [p_double, p_double, c_double, c_size]
 
-    lib.membw_add.restype = None
-    lib.membw_add.argtypes = [p_double, p_double, p_double, c_size]
+    lib.memceiling_add.restype = None
+    lib.memceiling_add.argtypes = [p_double, p_double, p_double, c_size]
 
-    lib.membw_triad.restype = None
-    lib.membw_triad.argtypes = [p_double, p_double, p_double, c_double, c_size]
+    lib.memceiling_triad.restype = None
+    lib.memceiling_triad.argtypes = [p_double, p_double, p_double, c_double, c_size]
 
-    lib.membw_fill.restype = None
-    lib.membw_fill.argtypes = [p_double, c_double, c_size]
+    lib.memceiling_fill.restype = None
+    lib.memceiling_fill.argtypes = [p_double, c_double, c_size]
 
 
 def load_c_kernels(
@@ -291,7 +291,7 @@ def load_c_kernels(
     The reason is written for a human reading a provenance record, so it
     says what was tried.
     """
-    explicit = library_path or os.environ.get("MEMBW_C_LIBRARY")
+    explicit = library_path or os.environ.get("MEMCEILING_C_LIBRARY")
     report = None
     if explicit:
         path = explicit
@@ -317,14 +317,14 @@ def load_c_kernels(
 
     try:
         _apply_signatures(lib)
-        abi = int(lib.membw_abi_version())
+        abi = int(lib.memceiling_abi_version())
     except (AttributeError, OSError) as exc:
-        return None, "library at %s is missing membw symbols: %s" % (path, exc)
+        return None, "library at %s is missing memceiling symbols: %s" % (path, exc)
 
     if abi != ABI_VERSION:
         return None, (
-            "library at %s reports ABI version %d but this membw expects %d; "
-            "rebuild it with 'membw build-c --force'" % (path, abi, ABI_VERSION)
+            "library at %s reports ABI version %d but this memceiling expects %d; "
+            "rebuild it with 'memceiling build-c --force'" % (path, abi, ABI_VERSION)
         )
 
     return (

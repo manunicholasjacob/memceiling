@@ -7,7 +7,7 @@ the code cannot drift apart.
 
 import pytest
 
-from membw.theoretical import (
+from memceiling.theoretical import (
     FORMULA,
     MemoryModule,
     parse_dmidecode_memory,
@@ -179,7 +179,7 @@ class TestMemoryConfigOverride:
             parse_memory_config_string(text)
 
     def test_an_override_is_labelled_as_an_override(self):
-        from membw.theoretical import derive_theoretical_peak
+        from memceiling.theoretical import derive_theoretical_peak
 
         peak = derive_theoretical_peak("4267:32:1")
         assert peak.peak_gb_s == pytest.approx(17.068)

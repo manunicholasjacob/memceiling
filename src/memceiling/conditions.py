@@ -8,12 +8,12 @@ Three groups of things are read here:
   3. A pre-run observation: how busy the target CPUs already are.
 
 Everything is read twice, before and after, except the competing-load
-observation which is taken before the run so that membw's own load does not
+observation which is taken before the run so that memceiling's own load does not
 appear in it. Any source that cannot be read is named, because the whole
 point is that a consumer can distinguish "nothing was wrong" from "nothing
 was checked".
 
-membw never changes the governor unless explicitly told to with
+memceiling never changes the governor unless explicitly told to with
 set_governor(), and when it does, it restores the previous value and reads
 it back to confirm.
 """
@@ -111,7 +111,7 @@ def parse_cgroup_cpu_stat(text: str) -> dict:
 
 
 def parse_vmstat(text: str) -> dict:
-    """Parse /proc/vmstat, keeping only the swap counters membw uses."""
+    """Parse /proc/vmstat, keeping only the swap counters memceiling uses."""
     wanted = ("pswpin", "pswpout")
     out: dict = {}
     for raw in (text or "").splitlines():
@@ -457,7 +457,7 @@ def _windows_system_busy_fraction(window_s: float):
 
 
 def measure_competing_load(cpus=None, window_s: float = 0.4):
-    """Observe how busy the target CPUs are BEFORE membw loads them.
+    """Observe how busy the target CPUs are BEFORE memceiling loads them.
 
     Returns (busy_fraction, source, unreadable_list). The fraction is the
     non-idle fraction of CPU time over the window. On Linux it is restricted
@@ -497,7 +497,7 @@ def measure_competing_load(cpus=None, window_s: float = 0.4):
 class GovernorChange:
     """A governor change that knows how to undo itself and verify the undo.
 
-    membw only constructs this when the operator passes an explicit opt-in
+    memceiling only constructs this when the operator passes an explicit opt-in
     flag. The restore is verified by reading the value back, and a failure to
     restore is reported as an invalidating condition rather than swallowed,
     because leaving a machine in a changed power state is a side effect the

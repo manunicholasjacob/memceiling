@@ -1,4 +1,4 @@
-name: "membw memory bandwidth ceiling"
+name: "memceiling memory bandwidth ceiling"
 description: >-
   Measure the real memory bandwidth ceiling of this runner and record it into
   the build, so performance numbers from CI can be interpreted against a
@@ -29,7 +29,7 @@ inputs:
     default: "5"
   min-run-seconds:
     description: >-
-      Shortest timed region treated as stable. membw calibrates the number of
+      Shortest timed region treated as stable. memceiling calibrates the number of
       passes per repetition to reach this.
     required: false
     default: "0.2"
@@ -59,7 +59,7 @@ inputs:
   output-path:
     description: "Where to write the provenance envelope as JSON."
     required: false
-    default: "membw-envelope.json"
+    default: "memceiling-envelope.json"
   fail-on-invalid:
     description: >-
       Fail the step when the verdict is not PASS. Default false, so a noisy
@@ -69,7 +69,7 @@ inputs:
     default: "false"
   install-source:
     description: >-
-      Where to install membw from: 'action' uses the copy of membw at this
+      Where to install memceiling from: 'action' uses the copy of memceiling at this
       action's own ref, which is the reproducible choice; 'pypi' installs the
       published release.
     required: false
@@ -78,62 +78,62 @@ inputs:
 outputs:
   verdict:
     description: "PASS, INVALID, UNSUPPORTED or UNKNOWN."
-    value: ${{ steps.membw.outputs.verdict }}
+    value: ${{ steps.memceiling.outputs.verdict }}
   ceiling-gb-s:
     description: "Highest achieved figure across the read, copy and triad kernels."
-    value: ${{ steps.membw.outputs.ceiling-gb-s }}
+    value: ${{ steps.memceiling.outputs.ceiling-gb-s }}
   ceiling-kernel:
     description: "Which kernel produced the ceiling."
-    value: ${{ steps.membw.outputs.ceiling-kernel }}
+    value: ${{ steps.memceiling.outputs.ceiling-kernel }}
   read-gb-s:
     description: "Achieved sequential read bandwidth."
-    value: ${{ steps.membw.outputs.read-gb-s }}
+    value: ${{ steps.memceiling.outputs.read-gb-s }}
   copy-gb-s:
     description: "Achieved STREAM-convention Copy bandwidth."
-    value: ${{ steps.membw.outputs.copy-gb-s }}
+    value: ${{ steps.memceiling.outputs.copy-gb-s }}
   triad-gb-s:
     description: "Achieved STREAM-convention Triad bandwidth."
-    value: ${{ steps.membw.outputs.triad-gb-s }}
+    value: ${{ steps.memceiling.outputs.triad-gb-s }}
   theoretical-peak-gb-s:
     description: "Derived theoretical peak, or empty when it is UNKNOWN."
-    value: ${{ steps.membw.outputs.theoretical-peak-gb-s }}
+    value: ${{ steps.memceiling.outputs.theoretical-peak-gb-s }}
   fraction-percent:
     description: "Ceiling as a percentage of the theoretical peak, or empty."
-    value: ${{ steps.membw.outputs.fraction-percent }}
+    value: ${{ steps.memceiling.outputs.fraction-percent }}
   code-path:
     description: "Which code path produced the figures: c or numpy."
-    value: ${{ steps.membw.outputs.code-path }}
+    value: ${{ steps.memceiling.outputs.code-path }}
   envelope-path:
     description: "Path to the written provenance envelope."
-    value: ${{ steps.membw.outputs.envelope-path }}
+    value: ${{ steps.memceiling.outputs.envelope-path }}
 
 runs:
   using: "composite"
   steps:
-    - name: Install membw
+    - name: Install memceiling
       shell: bash
       run: |
         set -eu
         if [ "${{ inputs.install-source }}" = "pypi" ]; then
-          python -m pip install --disable-pip-version-check --quiet membw
+          python -m pip install --disable-pip-version-check --quiet memceiling
         else
           python -m pip install --disable-pip-version-check --quiet \
             "$GITHUB_ACTION_PATH"
         fi
-        python -c "import membw; print('membw', membw.__version__)"
+        python -c "import memceiling; print('memceiling', memceiling.__version__)"
 
     - name: Build the compiled kernels
       if: inputs.code-path != 'numpy'
       shell: bash
       run: |
         # A runner without a C toolchain is a normal case, not a failure:
-        # membw falls back to the numpy path and labels every figure with
+        # memceiling falls back to the numpy path and labels every figure with
         # the path that produced it.
-        python -m membw.cli build-c || \
-          echo "membw: no compiled kernels on this runner, using the numpy path"
+        python -m memceiling.cli build-c || \
+          echo "memceiling: no compiled kernels on this runner, using the numpy path"
 
     - name: Measure the memory bandwidth ceiling
-      id: membw
+      id: memceiling
       shell: bash
       run: |
         set -u
@@ -157,7 +157,7 @@ runs:
         fi
 
         # shellcheck disable=SC2086
-        python -m membw.cli run $args > /dev/null
+        python -m memceiling.cli run $args > /dev/null
 
         python - "${{ inputs.output-path }}" <<'PY'
         import json, os, sys
@@ -192,7 +192,7 @@ runs:
         summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
         if summary_path:
             lines = [
-                "### membw memory bandwidth ceiling",
+                "### memceiling memory bandwidth ceiling",
                 "",
                 "**verdict: %s**" % envelope.get("verdict"),
                 "",
@@ -241,9 +241,9 @@ runs:
         PY
 
     - name: Fail on a non-PASS verdict
-      if: inputs.fail-on-invalid == 'true' && steps.membw.outputs.verdict != 'PASS'
+      if: inputs.fail-on-invalid == 'true' && steps.memceiling.outputs.verdict != 'PASS'
       shell: bash
       run: |
-        echo "membw verdict is ${{ steps.membw.outputs.verdict }}, not PASS." >&2
+        echo "memceiling verdict is ${{ steps.memceiling.outputs.verdict }}, not PASS." >&2
         echo "See ${{ inputs.output-path }} for the reasons." >&2
         exit 1

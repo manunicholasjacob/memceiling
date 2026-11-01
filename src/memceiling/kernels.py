@@ -6,7 +6,7 @@ Two code paths produce the numbers:
             with ctypes releasing the GIL for its duration.
   * "numpy" numpy ufuncs. Portable and always available, but its triad
             cannot be expressed as one fused pass, so it does more array
-            passes than the byte count it is credited with. membw records
+            passes than the byte count it is credited with. memceiling records
             the path on every number rather than treating the two as
             interchangeable.
 
@@ -44,22 +44,22 @@ ELEMENT_BYTES = 8  # float64, as STREAM uses by default
 MIB = 1024 * 1024
 
 # STREAM's run rules put a floor of one million elements per array under the
-# cache-multiple rule, so membw uses the same floor.
+# cache-multiple rule, so memceiling uses the same floor.
 STREAM_MIN_ELEMENTS = 1_000_000
 
 # Default working-set margin. STREAM's run rules require each array to be at
-# least 4x the sum of all the last-level caches used in the run; membw
-# enforces that same multiple so a membw buffer is never smaller than a
+# least 4x the sum of all the last-level caches used in the run; memceiling
+# enforces that same multiple so a memceiling buffer is never smaller than a
 # conforming STREAM buffer.
 DEFAULT_LLC_MARGIN = 4.0
 
 # Floor used when the LLC size cannot be read at all. 64 MiB clears the
-# last-level cache of every CPU membw is likely to meet, but it is a floor,
+# last-level cache of every CPU memceiling is likely to meet, but it is a floor,
 # not a check, and the run is reported as UNKNOWN rather than PASS when the
 # real LLC size was never read.
 DEFAULT_FLOOR_BYTES = 64 * MIB
 
-# Share of available memory membw is willing to occupy with its buffers.
+# Share of available memory memceiling is willing to occupy with its buffers.
 DEFAULT_MEMORY_FRACTION = 0.5
 
 # Ceiling on the auto-calibrated pass count, so a pathologically fast
@@ -168,7 +168,7 @@ def plan_buffers(
             memory_limited = True
             rationale += (
                 "; capped at %d bytes per array because only %d bytes were "
-                "available and membw will not occupy more than %.0f%% of it"
+                "available and memceiling will not occupy more than %.0f%% of it"
                 % (cap, available_bytes, memory_fraction * 100)
             )
 
@@ -249,7 +249,7 @@ def choose_inner_passes(
 
     A single pass over a buffer sized to a few times the last-level cache
     takes only a few milliseconds on a modern machine, which is short enough
-    that the clock and the scheduler contribute visible noise. membw
+    that the clock and the scheduler contribute visible noise. memceiling
     therefore times N passes and divides, choosing N from one calibration
     pass so that the timed region reaches min_run_seconds.
 
@@ -395,7 +395,7 @@ def allocate_aligned(elements: int, alignment: int = CACHE_LINE_BYTES):
 
     numpy's allocator usually returns aligned memory for large requests but
     does not promise it, and an unaligned array quietly costs bandwidth, so
-    membw aligns explicitly. The returned view keeps the oversized base
+    memceiling aligns explicitly. The returned view keeps the oversized base
     array alive, so nothing has to be held on the caller's side.
     """
     raw = np.empty(elements * ELEMENT_BYTES + alignment, dtype=np.uint8)
@@ -458,7 +458,7 @@ def _run_pinned(cpu_assignment, reps: int, work, first_touch=None):
             barrier.abort()
 
     threads = [
-        threading.Thread(target=worker, args=(i,), name="membw-%d" % i, daemon=True)
+        threading.Thread(target=worker, args=(i,), name="memceiling-%d" % i, daemon=True)
         for i in range(count)
     ]
     for thread in threads:
@@ -498,7 +498,7 @@ def measure(
     """Measure read, copy and triad on `cpus` using one code path.
 
     `code_path` is PATH_C or PATH_NUMPY. PATH_C requires `ckernels`, a loaded
-    CKernels from membw.cbuild. Buffers are allocated here and released when
+    CKernels from memceiling.cbuild. Buffers are allocated here and released when
     this function returns, so a per-cluster sweep does not hold three
     buffers per cluster at once.
     """
@@ -531,9 +531,9 @@ def measure(
         if length <= 0:
             return
         if code_path == PATH_C:
-            lib.membw_fill(_ptr(a, start), 1.0, length)
-            lib.membw_fill(_ptr(b, start), 2.0, length)
-            lib.membw_fill(_ptr(c, start), 0.5, length)
+            lib.memceiling_fill(_ptr(a, start), 1.0, length)
+            lib.memceiling_fill(_ptr(b, start), 2.0, length)
+            lib.memceiling_fill(_ptr(c, start), 0.5, length)
         else:
             a[start : start + length] = 1.0
             b[start : start + length] = 2.0
@@ -596,7 +596,7 @@ def measure(
                 return
             pointer = _ptr(a, start)
             for _ in range(inner_box[0]):
-                sink[index] = lib.membw_read(pointer, length)
+                sink[index] = lib.memceiling_read(pointer, length)
 
         def copy_work(index, rep):
             start, length = slices[index]
@@ -604,7 +604,7 @@ def measure(
                 return
             dst, src = _ptr(c, start), _ptr(a, start)
             for _ in range(inner_box[0]):
-                lib.membw_copy(dst, src, length)
+                lib.memceiling_copy(dst, src, length)
 
         def triad_work(index, rep):
             start, length = slices[index]
@@ -612,7 +612,7 @@ def measure(
                 return
             pa, pb, pc = _ptr(a, start), _ptr(b, start), _ptr(c, start)
             for _ in range(inner_box[0]):
-                lib.membw_triad(pa, pb, pc, scalar, length)
+                lib.memceiling_triad(pa, pb, pc, scalar, length)
 
         def strided_work(index, rep):
             start, length = slices[index]
@@ -621,7 +621,7 @@ def measure(
             pointer = _ptr(a, start)
             step = CACHE_LINE_BYTES // ELEMENT_BYTES
             for _ in range(inner_box[0]):
-                sink[index] = lib.membw_read_strided(pointer, length, step)
+                sink[index] = lib.memceiling_read_strided(pointer, length, step)
 
         read_note = (
             "one compiled loop per pass, four accumulators, result returned "

@@ -3,7 +3,7 @@
 The distinction this module exists to preserve: a tool that prints the mask
 it ASKED for is reporting its own intention, not the machine's behaviour. A
 request can be silently narrowed by a cpuset, a cgroup, a container runtime
-or a processor-group limit. membw therefore always reads the mask back after
+or a processor-group limit. memceiling therefore always reads the mask back after
 setting it, and additionally records which CPU each worker was observed
 running on, which is the only direct evidence that a thread did not migrate.
 
@@ -58,7 +58,7 @@ class AffinityResult:
 
 
 def pinning_supported() -> bool:
-    """True if this platform has a thread-pinning mechanism membw can use."""
+    """True if this platform has a thread-pinning mechanism memceiling can use."""
     if hasattr(os, "sched_setaffinity") and hasattr(os, "sched_getaffinity"):
         return True
     return platform.system() == "Windows"
@@ -148,7 +148,7 @@ def pin_current_thread(cpus) -> AffinityResult:
                 mechanism=mechanism,
                 error=(
                     "CPU id %d is outside the single 64-CPU processor group "
-                    "that SetThreadAffinityMask can address; membw does not "
+                    "that SetThreadAffinityMask can address; memceiling does not "
                     "use SetThreadGroupAffinity yet"
                     % max(requested)
                 ),

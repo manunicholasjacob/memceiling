@@ -1,13 +1,13 @@
 """Parsing tests.
 
-Every parser membw uses to read a machine is exercised here against fixed
+Every parser memceiling uses to read a machine is exercised here against fixed
 text, so the test suite proves the reading logic without depending on the
 machine the tests run on. None of these tests asserts a throughput value.
 """
 
 import pytest
 
-from membw.conditions import (
+from memceiling.conditions import (
     busy_fraction_from_proc_stat,
     parse_cgroup_cpu_stat,
     parse_proc_self_stat_majflt,
@@ -15,7 +15,7 @@ from membw.conditions import (
     parse_vcgencmd_throttled,
     parse_vmstat,
 )
-from membw.topology import (
+from memceiling.topology import (
     format_cpu_list,
     group_by_capacity,
     parse_cache_size,

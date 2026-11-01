@@ -3,7 +3,7 @@ requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "membw"
+name = "memceiling"
 dynamic = ["version"]
 description = "Measure a machine's achieved memory bandwidth ceiling, with a provenance record and a refusal to report an invalid number."
 readme = "README.md"
@@ -50,25 +50,25 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/manunicholasjacob/membw"
-Repository = "https://github.com/manunicholasjacob/membw"
-Issues = "https://github.com/manunicholasjacob/membw/issues"
-Changelog = "https://github.com/manunicholasjacob/membw/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/manunicholasjacob/memceiling"
+Repository = "https://github.com/manunicholasjacob/memceiling"
+Issues = "https://github.com/manunicholasjacob/memceiling/issues"
+Changelog = "https://github.com/manunicholasjacob/memceiling/blob/main/CHANGELOG.md"
 
 [project.scripts]
-membw = "membw.cli:main"
+memceiling = "memceiling.cli:main"
 
 [tool.setuptools.dynamic]
-version = { attr = "membw.version.__version__" }
+version = { attr = "memceiling.version.__version__" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-# The C kernel source ships inside the wheel so that `membw build-c` can
+# The C kernel source ships inside the wheel so that `memceiling build-c` can
 # compile it on the target machine. It is source, not a built artifact, so
 # the wheel stays pure Python and portable.
-membw = ["_ckernels.c"]
+memceiling = ["_ckernels.c"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

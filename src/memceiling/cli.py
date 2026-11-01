@@ -1,17 +1,17 @@
-"""The membw command line.
+"""The memceiling command line.
 
-    membw                       measure, print a human summary
-    membw --json                measure, print the provenance envelope
-    membw info                  report what can be read, measure nothing
-    membw build-c               build the optional compiled kernels
-    membw schema                print the reason-code vocabulary
+    memceiling                       measure, print a human summary
+    memceiling --json                measure, print the provenance envelope
+    memceiling info                  report what can be read, measure nothing
+    memceiling build-c               build the optional compiled kernels
+    memceiling schema                print the reason-code vocabulary
 
 Exit status is the verdict, so a CI step can act on it:
 
     0  PASS            the figure is trustworthy
     2  INVALID         conditions during the run invalidate the figure
-    3  UNKNOWN         membw could not establish validity
-    4  UNSUPPORTED     membw cannot measure here
+    3  UNKNOWN         memceiling could not establish validity
+    4  UNSUPPORTED     memceiling cannot measure here
     1  an internal error, with a traceback
 
 Pass --exit-zero to record a figure in CI without failing the build on a
@@ -53,18 +53,18 @@ EXIT_FOR_VERDICT = {
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="membw",
+        prog="memceiling",
         description=(
             "Measure the achieved memory bandwidth ceiling of this machine "
             "and report it against the theoretical peak, with a record of "
             "the conditions the figure was taken under."
         ),
         epilog=(
-            "membw refuses to present a figure taken under conditions that "
+            "memceiling refuses to present a figure taken under conditions that "
             "invalidate it. A non-zero exit status is the tool working."
         ),
     )
-    parser.add_argument("--version", action="version", version="membw " + __version__)
+    parser.add_argument("--version", action="version", version="memceiling " + __version__)
 
     sub = parser.add_subparsers(dest="command")
 
@@ -176,7 +176,7 @@ def _add_run_arguments(parser: argparse.ArgumentParser) -> None:
         default=DEFAULT_MEMORY_FRACTION,
         metavar="F",
         help=(
-            "largest share of available memory membw will occupy "
+            "largest share of available memory memceiling will occupy "
             "(default: %.2f)" % DEFAULT_MEMORY_FRACTION
         ),
     )
@@ -229,7 +229,7 @@ def _add_run_arguments(parser: argparse.ArgumentParser) -> None:
         help=(
             "OPT IN: set the CPU frequency governor to NAME for the run, then "
             "restore the previous value and verify the restore. Linux only, "
-            "needs write access to sysfs. Off by default: membw does not "
+            "needs write access to sysfs. Off by default: memceiling does not "
             "change your machine's power state unless you ask."
         ),
     )
@@ -280,7 +280,7 @@ def format_human(result) -> str:
     buffers = (aggregate.get("buffers") or {}) if aggregate else {}
 
     lines = []
-    lines.append("membw %s   verdict: %s" % (envelope["tool"]["version"], envelope["verdict"]))
+    lines.append("memceiling %s   verdict: %s" % (envelope["tool"]["version"], envelope["verdict"]))
     lines.append("taken %s on %s %s (%s)" % (
         envelope["taken_at_utc"],
         envelope["platform"]["system"],
@@ -427,7 +427,7 @@ def _cmd_info(args) -> int:
         sys.stdout.write(json.dumps(payload, indent=2) + "\n")
         return EXIT_OK
 
-    lines = ["membw info (nothing was measured)", ""]
+    lines = ["memceiling info (nothing was measured)", ""]
     lines.append("cpu model        %s" % (topo.cpu_model or "UNKNOWN"))
     lines.append("online cpus      %s (%d)" % (
         format_cpu_list(topo.online_cpus), len(topo.online_cpus)
@@ -484,7 +484,7 @@ def _cmd_build_c(args) -> int:
         if report.stderr:
             sys.stdout.write("--- compiler stderr ---\n%s\n" % report.stderr.strip())
         sys.stdout.write(
-            "\nmembw will use the numpy path instead, and will label every "
+            "\nmemceiling will use the numpy path instead, and will label every "
             "figure accordingly.\n"
         )
     return EXIT_OK if report.ok else EXIT_UNSUPPORTED

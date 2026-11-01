@@ -1,6 +1,6 @@
 """Tests for the refusal rules.
 
-The verdict logic is pure, so every refusal membw claims to make is asserted
+The verdict logic is pure, so every refusal memceiling claims to make is asserted
 here directly: a working set inside the cache, a throttle counter that
 advanced, a governor that changed, an affinity mask that did not take, a
 figure above theoretical. No test here depends on how fast any machine is.
@@ -8,7 +8,7 @@ figure above theoretical. No test here depends on how fast any machine is.
 
 import pytest
 
-from membw.schema import (
+from memceiling.schema import (
     CONFIDENCE_BLOCKING,
     REASON_CODES,
     SEVERITIES,
@@ -18,7 +18,7 @@ from membw.schema import (
     VERDICT_UNKNOWN,
     VERDICT_UNSUPPORTED,
 )
-from membw.validity import ValidityInput, build_reasons, evaluate, verdict_from_reasons
+from memceiling.validity import ValidityInput, build_reasons, evaluate, verdict_from_reasons
 
 MIB = 1024 * 1024
 
@@ -391,7 +391,7 @@ class TestVocabularyIntegrity:
         for code, (severity, meaning) in REASON_CODES.items():
             assert severity in SEVERITIES, code
             assert meaning, code
-            assert meaning[0].isupper() or meaning.startswith("membw"), code
+            assert meaning[0].isupper() or meaning.startswith("memceiling"), code
             assert meaning.endswith("."), code
 
     def test_confidence_blocking_codes_exist_and_are_warnings(self):

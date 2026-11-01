@@ -13,7 +13,7 @@ dist/
 .ruff_cache/
 .venv/
 venv/
-membw-*.json
+memceiling-*.json
 
 # Crash dumps from tooling on Windows
 *.stackdump

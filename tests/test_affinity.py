@@ -9,7 +9,7 @@ import os
 
 import pytest
 
-from membw.affinity import (
+from memceiling.affinity import (
     AffinityResult,
     _cpus_from_mask,
     _mask_from_cpus,

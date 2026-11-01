@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to membw are recorded here. The format follows
+All notable changes to memceiling are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the versioning
 follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -47,14 +47,14 @@ First release. Not yet published to PyPI or tagged on GitHub; see
 - The `measurement-provenance/1` output envelope, shared with the sibling
   tools named in the README, including an `unreadable` list naming every
   source that could not be read.
-- CLI: `membw run` (the default), `membw info`, `membw build-c`,
-  `membw schema`, with `--json`, `--out` and the verdict as the exit status.
+- CLI: `memceiling run` (the default), `memceiling info`, `memceiling build-c`,
+  `memceiling schema`, with `--json`, `--out` and the verdict as the exit status.
 - `action.yml` at the repository root, so the Action can be used as
-  `manunicholasjacob/membw@v0.1.0` to record a CI runner's real memory
+  `manunicholasjacob/memceiling@v0.1.0` to record a CI runner's real memory
   ceiling into the build.
 - A test suite that asserts no throughput value: parsing, pinning logic,
   buffer-sizing arithmetic, refusal rules, envelope shape, CLI exit codes,
   and the README's coverage of the reason-code vocabulary.
 
-[Unreleased]: https://github.com/manunicholasjacob/membw/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/manunicholasjacob/membw/releases/tag/v0.1.0
+[Unreleased]: https://github.com/manunicholasjacob/memceiling/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/manunicholasjacob/memceiling/releases/tag/v0.1.0

@@ -1,19 +1,19 @@
-"""Stable identifiers for the membw output envelope.
+"""Stable identifiers for the memceiling output envelope.
 
 Nothing in this module measures anything. It exists so that consumers can
 import the vocabulary without importing the measurement machinery, and so
 that the reason codes documented in README.md have exactly one definition.
 
 The outer envelope is shared with sibling tools (see README, "Related
-tools"). membw does not own the envelope's verdict vocabulary; it conforms
-to it. membw owns only the codes in REASON_CODES below and everything
+tools"). memceiling does not own the envelope's verdict vocabulary; it conforms
+to it. memceiling owns only the codes in REASON_CODES below and everything
 under the envelope's "measurement" key.
 """
 
 from __future__ import annotations
 
 SCHEMA_ID = "measurement-provenance/1"
-TOOL_NAME = "membw"
+TOOL_NAME = "memceiling"
 
 # Severities, as used in envelope["reasons"][i]["severity"].
 SEVERITY_INVALIDATING = "invalidating"
@@ -35,7 +35,7 @@ VERDICTS = (VERDICT_PASS, VERDICT_INVALID, VERDICT_UNSUPPORTED, VERDICT_UNKNOWN)
 # A code's severity is a default, not a law: a few codes are promoted or
 # demoted at runtime (for example THEORETICAL_PEAK_UNKNOWN stays info, but
 # FRACTION_ABOVE_THEORETICAL is always invalidating). Anything that changes
-# severity at runtime does so in membw.validity and says why there.
+# severity at runtime does so in memceiling.validity and says why there.
 REASON_CODES = {
     # Working set versus last-level cache.
     "WORKING_SET_BELOW_LLC": (
@@ -101,7 +101,7 @@ REASON_CODES = {
     ),
     "GOVERNOR_RESTORE_FAILED": (
         SEVERITY_INVALIDATING,
-        "membw changed the governor on request and could not verify that the "
+        "memceiling changed the governor on request and could not verify that the "
         "original value was restored.",
     ),
     # Affinity.
@@ -154,7 +154,7 @@ REASON_CODES = {
     # Platform.
     "PLATFORM_UNSUPPORTED": (
         SEVERITY_INVALIDATING,
-        "membw cannot measure on this platform.",
+        "memceiling cannot measure on this platform.",
     ),
     "PER_CLUSTER_UNAVAILABLE": (
         SEVERITY_INFO,
@@ -163,8 +163,8 @@ REASON_CODES = {
     ),
 }
 
-# Warnings that mean "membw could not establish validity", as opposed to
-# "membw established that something was off". A run carrying one of these and
+# Warnings that mean "memceiling could not establish validity", as opposed to
+# "memceiling established that something was off". A run carrying one of these and
 # no invalidating reason gets verdict UNKNOWN rather than PASS, because a
 # clean-looking report with an unread source behind it is the failure mode
 # this tool exists to prevent.

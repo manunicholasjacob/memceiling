@@ -1,4 +1,4 @@
-"""membw: measure a machine's achieved memory bandwidth ceiling, with a record.
+"""memceiling: measure a machine's achieved memory bandwidth ceiling, with a record.
 
 The small stable API, which the README documents and which a dependent may
 rely on across 0.1.x:
@@ -17,7 +17,7 @@ rely on across 0.1.x:
 
 Typical use as a roofline denominator:
 
-    from membw import measure
+    from memceiling import measure
     result = measure()
     if not result.trustworthy:
         raise SystemExit(

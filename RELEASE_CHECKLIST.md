@@ -18,26 +18,26 @@ activity is a local `git init` and local commits.
 | published to PyPI | **no** |
 | tagged | **no** |
 | Zenodo DOI | **no** |
-| name availability | `membw` was free on PyPI and `manunicholasjacob/membw` was free on GitHub when checked on 1 Nov 2026 |
+| name availability | `memceiling` was free on PyPI and `manunicholasjacob/memceiling` was free on GitHub when checked on 1 Nov 2026 |
 
 ## Before anything else: confirm the name is still free
 
 Checked 1 Nov 2026 and both were free, but neither is reserved, so confirm
 again at release time.
 
-1. PyPI: open <https://pypi.org/project/membw/> and confirm it is a 404.
+1. PyPI: open <https://pypi.org/project/memceiling/> and confirm it is a 404.
    A 404 on the JSON API means the name is not currently registered; PyPI
    separately blocks re-registration of some previously deleted names, and
    the only definitive test is the upload itself. Upload to TestPyPI first
    for that reason.
-2. GitHub: confirm <https://github.com/manunicholasjacob/membw> is still
-   free. Other users have repositories called `membw` (none is a packaged,
+2. GitHub: confirm <https://github.com/manunicholasjacob/memceiling> is still
+   free. Other users have repositories called `memceiling` (none is a packaged,
    published tool), so the name is not distinctive on GitHub, but it is not
    taken in your namespace.
 
 If either is gone, the fallbacks checked as free on PyPI on the same date
 were `membench`, `membandwidth` and `stream-benchmark`. Renaming touches
-`pyproject.toml` (`name`, URLs), `src/membw/version.py` only if the import
+`pyproject.toml` (`name`, URLs), `src/memceiling/version.py` only if the import
 path changes, `CITATION.cff`, `README.md`, `CHANGELOG.md`, `action.yml`
 and the directory name.
 
@@ -52,19 +52,19 @@ decision goes to the attorney first. Keep GitHub Sponsors off.
 ## 2. Final local checks
 
 ```sh
-cd membw
+cd memceiling
 python -m pytest -v
 LC_ALL=C grep -rn '[^ -~]' .     # must print nothing
-python -m membw.cli info
-python -m membw.cli schema
-python -m membw.cli run --json --out /tmp/membw.json
+python -m memceiling.cli info
+python -m memceiling.cli schema
+python -m memceiling.cli run --json --out /tmp/memceiling.json
 python -m build
 python -m twine check dist/*
 ```
 
 Confirm by eye:
 
-- `src/membw/version.py`, `CITATION.cff` (`version:` and `date-released:`)
+- `src/memceiling/version.py`, `CITATION.cff` (`version:` and `date-released:`)
   and the `CHANGELOG.md` heading all say the same version. A test asserts
   the first three agree, but the release date in `CITATION.cff` is not
   checked by anything.
@@ -78,10 +78,10 @@ Confirm by eye:
 Not done, and not to be done by any agent.
 
 ```sh
-# create manunicholasjacob/membw as a PUBLIC repository in the web UI,
+# create manunicholasjacob/memceiling as a PUBLIC repository in the web UI,
 # with no README, no .gitignore and no licence, so the local history is
 # the initial history
-git remote add origin git@github.com:manunicholasjacob/membw.git
+git remote add origin git@github.com:manunicholasjacob/memceiling.git
 git branch -M main
 git push -u origin main
 ```
@@ -114,11 +114,11 @@ If CI shows something other than those, fix it before tagging.
 
 ## 5. Tag v0.1.0
 
-The Action must be referenceable as `manunicholasjacob/membw@v0.1.0`, so the
+The Action must be referenceable as `manunicholasjacob/memceiling@v0.1.0`, so the
 tag is what makes the Action usable by a dependent.
 
 ```sh
-git tag -a v0.1.0 -m "membw 0.1.0"
+git tag -a v0.1.0 -m "memceiling 0.1.0"
 git push origin v0.1.0
 ```
 
@@ -133,9 +133,9 @@ floating tag is a maintenance commitment.
 python -m build
 python -m twine upload --repository testpypi dist/*
 # install from TestPyPI into a clean virtualenv and run:
-#   membw info
-#   membw build-c
-#   membw --json
+#   memceiling info
+#   memceiling build-c
+#   memceiling --json
 python -m twine upload dist/*
 ```
 
@@ -152,9 +152,9 @@ Note that two separate GitHub surfaces are involved, and shipping both is
 why the repository has both a package and an Action:
 
 - the package dependents list, populated when another repository names
-  `membw` in `pyproject.toml` or `requirements.txt`;
+  `memceiling` in `pyproject.toml` or `requirements.txt`;
 - the Action dependents list, populated when another repository names
-  `manunicholasjacob/membw` in a `.github/workflows` file.
+  `manunicholasjacob/memceiling` in a `.github/workflows` file.
 
 Neither is populated by a bare CLI.
 
@@ -172,16 +172,16 @@ Zenodo deposits.
   `/sys/devices/system/cpu/*`, `/proc/stat`, `/proc/vmstat`,
   `/sys/fs/cgroup/cpu.stat`, `dmidecode`, the device tree, `vcgencmd`) are
   exercised by the test suite against fixed text, but have not been run
-  against a real Linux machine. Run `membw info` and `membw --json` on the
+  against a real Linux machine. Run `memceiling info` and `memceiling --json` on the
   Raspberry Pi 5 and on a Linux x86 box before claiming anything about them
   publicly. The first CI run gives you the Linux and macOS pass.
 - **No Arm big.LITTLE verification.** The per-cluster path is the headline
   claim and has only been exercised against an x86 hybrid part's efficiency
   classes on Windows and against fixed `/proc/cpuinfo` text in the tests. It
   has not been run on a real big.LITTLE SoC.
-- **No comparison run against STREAM.** Before quoting a `membw` figure next
+- **No comparison run against STREAM.** Before quoting a `memceiling` figure next
   to a STREAM figure anywhere public, run both on the same machine in the
-  same session and reconcile them. Until then, do not present a `membw`
+  same session and reconcile them. Until then, do not present a `memceiling`
   number as reproducing any previously published figure.
 - **Two related-work details were not confirmed and the README avoids
   claiming them.** likwid-bench has an undocumented `-d <delimiter>` flag

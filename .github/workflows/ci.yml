@@ -64,14 +64,14 @@ jobs:
         shell: bash
         run: |
           # A runner without a usable toolchain is reported, not fatal.
-          python -m membw.cli build-c || \
+          python -m memceiling.cli build-c || \
             echo "no compiled kernels here; the numpy path will be used"
 
-      - name: Report what membw can read on this runner
-        run: python -m membw.cli info
+      - name: Report what memceiling can read on this runner
+        run: python -m memceiling.cli info
 
       - name: Print the reason-code vocabulary
-        run: python -m membw.cli schema
+        run: python -m memceiling.cli schema
 
       - name: Tests
         run: python -m pytest -v
@@ -90,8 +90,8 @@ jobs:
           if not wheels:
               sys.exit("no wheel was built")
           names = zipfile.ZipFile(wheels[0]).namelist()
-          if not any(n.endswith("membw/_ckernels.c") for n in names):
-              sys.exit("the wheel does not contain membw/_ckernels.c: %s" % names)
+          if not any(n.endswith("memceiling/_ckernels.c") for n in names):
+              sys.exit("the wheel does not contain memceiling/_ckernels.c: %s" % names)
           print("wheel contains the C kernel source")
           PY
 
@@ -111,12 +111,12 @@ jobs:
           python-version: "3.13"
 
       - name: Measure the runner's memory bandwidth ceiling
-        id: membw
+        id: memceiling
         uses: ./
         with:
           repeats: "3"
           min-run-seconds: "0.2"
-          output-path: membw-envelope.json
+          output-path: memceiling-envelope.json
           # A shared CI runner is noisy and its SMBIOS is often hidden, so a
           # non-PASS verdict here is expected and is not a build failure.
           # That is the point of the record: the verdict travels with the
@@ -126,23 +126,23 @@ jobs:
       - name: Show the outputs the Action exposed
         shell: bash
         run: |
-          echo "verdict:       ${{ steps.membw.outputs.verdict }}"
-          echo "ceiling:       ${{ steps.membw.outputs.ceiling-gb-s }} GB/s"
-          echo "kernel:        ${{ steps.membw.outputs.ceiling-kernel }}"
-          echo "read:          ${{ steps.membw.outputs.read-gb-s }} GB/s"
-          echo "copy:          ${{ steps.membw.outputs.copy-gb-s }} GB/s"
-          echo "triad:         ${{ steps.membw.outputs.triad-gb-s }} GB/s"
-          echo "theoretical:   ${{ steps.membw.outputs.theoretical-peak-gb-s }} GB/s"
-          echo "fraction:      ${{ steps.membw.outputs.fraction-percent }} %"
-          echo "code path:     ${{ steps.membw.outputs.code-path }}"
-          echo "envelope:      ${{ steps.membw.outputs.envelope-path }}"
+          echo "verdict:       ${{ steps.memceiling.outputs.verdict }}"
+          echo "ceiling:       ${{ steps.memceiling.outputs.ceiling-gb-s }} GB/s"
+          echo "kernel:        ${{ steps.memceiling.outputs.ceiling-kernel }}"
+          echo "read:          ${{ steps.memceiling.outputs.read-gb-s }} GB/s"
+          echo "copy:          ${{ steps.memceiling.outputs.copy-gb-s }} GB/s"
+          echo "triad:         ${{ steps.memceiling.outputs.triad-gb-s }} GB/s"
+          echo "theoretical:   ${{ steps.memceiling.outputs.theoretical-peak-gb-s }} GB/s"
+          echo "fraction:      ${{ steps.memceiling.outputs.fraction-percent }} %"
+          echo "code path:     ${{ steps.memceiling.outputs.code-path }}"
+          echo "envelope:      ${{ steps.memceiling.outputs.envelope-path }}"
 
       - name: Check the envelope conforms to the shared schema
         shell: bash
         run: |
           python - <<'PY'
           import json, sys
-          with open("membw-envelope.json", "r", encoding="ascii") as handle:
+          with open("memceiling-envelope.json", "r", encoding="ascii") as handle:
               envelope = json.load(handle)
           expected = [
               "schema", "tool", "taken_at_utc", "duration_s", "platform",
@@ -159,6 +159,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: membw-envelope-${{ matrix.os }}
-          path: membw-envelope.json
+          name: memceiling-envelope-${{ matrix.os }}
+          path: memceiling-envelope.json
           if-no-files-found: error

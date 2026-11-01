@@ -14,7 +14,7 @@ import sys
 
 import pytest
 
-from membw.cli import (
+from memceiling.cli import (
     EXIT_FOR_VERDICT,
     EXIT_INVALID,
     EXIT_OK,
@@ -23,7 +23,7 @@ from membw.cli import (
     build_parser,
     main,
 )
-from membw.schema import REASON_CODES, VERDICTS
+from memceiling.schema import REASON_CODES, VERDICTS
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -316,7 +316,7 @@ class TestPackagingFilesExist:
         assert "Independent Researcher" in text
 
     def test_the_version_agrees_across_the_package_and_the_citation(self):
-        from membw import __version__
+        from memceiling import __version__
 
         citation = (REPO_ROOT / "CITATION.cff").read_text(encoding="ascii")
         assert 'version: "%s"' % __version__ in citation

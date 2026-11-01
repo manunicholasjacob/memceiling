@@ -261,7 +261,7 @@ def select_llc(entries: list[dict], selected_cpus=None) -> dict:
 def parse_meminfo(text: str) -> dict:
     """Parse /proc/meminfo into a dict of byte counts.
 
-    Only the keys membw uses are converted: MemTotal, MemAvailable, MemFree,
+    Only the keys memceiling uses are converted: MemTotal, MemAvailable, MemFree,
     SwapTotal, Hugepagesize. Values in meminfo are in kibibytes.
     """
     wanted = {
@@ -296,7 +296,7 @@ def parse_meminfo(text: str) -> dict:
 
 @dataclass
 class Cluster:
-    """One group of logical CPUs that membw will measure on its own."""
+    """One group of logical CPUs that memceiling will measure on its own."""
 
     name: str
     cpus: tuple[int, ...]
@@ -314,7 +314,7 @@ class Cluster:
 
 @dataclass
 class Topology:
-    """What membw managed to learn about the CPUs and memory capacity."""
+    """What memceiling managed to learn about the CPUs and memory capacity."""
 
     online_cpus: tuple[int, ...]
     clusters: tuple[Cluster, ...]
@@ -533,7 +533,7 @@ def detect_topology(selected_cpus=None) -> Topology:
     """Read what can be read about CPUs, clusters, LLC and memory capacity.
 
     selected_cpus narrows the LLC sum to the caches reachable from those
-    CPUs, which is what matters when membw is pinned to one cluster.
+    CPUs, which is what matters when memceiling is pinned to one cluster.
     """
     unreadable: list[str] = []
     system = platform.system()

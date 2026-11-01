@@ -11,9 +11,9 @@ import re
 
 import pytest
 
-from membw import __version__
-from membw.run import _build_envelope, _utc_now_iso
-from membw.schema import SCHEMA_ID, SEVERITIES, TOOL_NAME, VERDICTS
+from memceiling import __version__
+from memceiling.run import _build_envelope, _utc_now_iso
+from memceiling.schema import SCHEMA_ID, SEVERITIES, TOOL_NAME, VERDICTS
 
 ENVELOPE_KEYS = [
     "schema",
@@ -55,7 +55,7 @@ class TestEnvelopeShape:
 
     def test_tool_block(self, envelope):
         assert envelope["tool"] == {"name": TOOL_NAME, "version": __version__}
-        assert envelope["tool"]["name"] == "membw"
+        assert envelope["tool"]["name"] == "memceiling"
 
     def test_platform_block_has_the_four_agreed_fields(self, envelope):
         assert set(envelope["platform"]) == {"system", "release", "machine", "python"}
@@ -80,7 +80,7 @@ class TestEnvelopeShape:
 
     def test_everything_tool_specific_lives_under_measurement(self, envelope):
         assert "achieved" in envelope["measurement"]
-        # None of membw's own payload may leak to the top level.
+        # None of memceiling's own payload may leak to the top level.
         for key in ("achieved", "topology", "theoretical_peak", "code_path"):
             assert key not in envelope
 
@@ -110,11 +110,11 @@ class TestTimestamp:
 
 class TestUnreadableDeduplication:
     def test_duplicate_and_none_entries_are_dropped_in_order(self):
-        from membw.run import _dedupe
+        from memceiling.run import _dedupe
 
         assert _dedupe(["a", "b", "a", None, "c", "b"]) == ["a", "b", "c"]
 
     def test_empty(self):
-        from membw.run import _dedupe
+        from memceiling.run import _dedupe
 
         assert _dedupe([]) == []

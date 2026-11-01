@@ -1,6 +1,6 @@
 """Derive the theoretical peak memory bandwidth, or say UNKNOWN.
 
-The formula membw uses, and states in every record:
+The formula memceiling uses, and states in every record:
 
     peak_GB_s = data_rate_MT_s * total_data_width_bits / 8 / 1000
 
@@ -18,7 +18,7 @@ Two worked examples, to show the formula is the ordinary one:
   * one LPDDR4X-4267 32-bit channel
         4267 * 32 / 8 / 1000 = 17.068 GB/s
 
-membw never substitutes a number from a vendor datasheet or a lookup table
+memceiling never substitutes a number from a vendor datasheet or a lookup table
 for a part it recognises. If the memory configuration cannot be read, the
 peak is UNKNOWN and the achieved fraction is omitted, because a guessed
 denominator is the exact defect this tool exists to remove.
@@ -121,7 +121,7 @@ def _parse_rate(text: str) -> int | None:
     """Parse '4800 MT/s' or '3200 MHz'.
 
     A value given in MHz is read as the clock, not the transfer rate, and is
-    NOT doubled: membw refuses to infer a DDR multiplier it was not told,
+    NOT doubled: memceiling refuses to infer a DDR multiplier it was not told,
     because getting that wrong is a factor-of-two error in the denominator.
     Such a value is returned with the flag in parse_dmidecode_memory's
     'rate_unit_was_mhz' so the caller can decline to use it.
@@ -381,7 +381,7 @@ def read_windows_modules() -> tuple[list, str | None, list]:
 
 
 # SMBIOS memory device type codes, so the type field is a read value rather
-# than a guess. Only the codes membw may plausibly meet are listed.
+# than a guess. Only the codes memceiling may plausibly meet are listed.
 SMBIOS_MEMORY_TYPES = {
     20: "DDR",
     21: "DDR2",
@@ -400,7 +400,7 @@ def read_devicetree_modules() -> tuple[list, str | None, list]:
     """Look for a memory transfer rate in the Arm device tree.
 
     Most device trees, including the Raspberry Pi's, publish the memory
-    size and nothing about the transfer rate or bus width. membw therefore
+    size and nothing about the transfer rate or bus width. memceiling therefore
     usually reports UNKNOWN here and says which nodes it looked at, rather
     than filling in a datasheet figure for the detected board.
     """
@@ -437,7 +437,7 @@ def read_devicetree_modules() -> tuple[list, str | None, list]:
                     continue
                 value = int.from_bytes(blob, "big")
                 if target == "rate" and value:
-                    # A clock frequency is not a transfer rate. membw does
+                    # A clock frequency is not a transfer rate. memceiling does
                     # not double it, so it is recorded and not used.
                     rate = rate or value
                 elif target == "width" and value:
@@ -449,7 +449,7 @@ def read_devicetree_modules() -> tuple[list, str | None, list]:
     if rate is not None:
         unreadable.append(
             "Arm device tree gave a clock frequency of %d Hz but no transfer "
-            "rate; membw does not infer a DDR multiplier" % rate
+            "rate; memceiling does not infer a DDR multiplier" % rate
         )
     return [], None, unreadable
 
@@ -471,14 +471,14 @@ def derive_theoretical_peak(memory_config: str | None = None) -> TheoreticalPeak
         )
         return peak
 
-    env_override = os.environ.get("MEMBW_MEMORY_CONFIG")
+    env_override = os.environ.get("MEMCEILING_MEMORY_CONFIG")
     if env_override:
         modules = parse_memory_config_string(env_override)
         peak = peak_from_modules(
-            modules, source="MEMBW_MEMORY_CONFIG environment override"
+            modules, source="MEMCEILING_MEMORY_CONFIG environment override"
         )
         peak.note = (
-            "Theoretical peak came from the MEMBW_MEMORY_CONFIG environment "
+            "Theoretical peak came from the MEMCEILING_MEMORY_CONFIG environment "
             "variable, not from a reading of this machine."
             + (" " + peak.note if peak.note else "")
         )

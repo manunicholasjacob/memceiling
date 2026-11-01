@@ -14,8 +14,8 @@ The verdict rule, in order:
   3. any confidence-blocking warning present    -> UNKNOWN
   4. otherwise                                  -> PASS
 
-Step 3 is the part that distinguishes membw from a tool that prints a
-number and a blank line. A warning that says "membw could not read the
+Step 3 is the part that distinguishes memceiling from a tool that prints a
+number and a blank line. A warning that says "memceiling could not read the
 cache size" is not a clean run; it is an unverified one, and it must not
 come out as PASS.
 """
@@ -127,7 +127,7 @@ def build_reasons(data: ValidityInput) -> list:
         reasons.append(
             reason(
                 "PLATFORM_UNSUPPORTED",
-                data.platform_detail or "membw cannot measure on this platform.",
+                data.platform_detail or "memceiling cannot measure on this platform.",
             )
         )
         return reasons
@@ -138,7 +138,7 @@ def build_reasons(data: ValidityInput) -> list:
             reason(
                 "MEMORY_INSUFFICIENT",
                 "Available memory allowed only %s bytes per array, which is "
-                "below the one-million-element floor membw takes from STREAM's "
+                "below the one-million-element floor memceiling takes from STREAM's "
                 "run rules."
                 % (data.bytes_per_array,),
             )
@@ -147,7 +147,7 @@ def build_reasons(data: ValidityInput) -> list:
         reasons.append(
             reason(
                 "LLC_SIZE_UNKNOWN",
-                "The last-level cache size could not be read, so membw sized "
+                "The last-level cache size could not be read, so memceiling sized "
                 "the arrays to a fixed fallback floor and could not verify "
                 "that the working set clears the cache.",
             )
@@ -175,7 +175,7 @@ def build_reasons(data: ValidityInput) -> list:
             reason(
                 "AFFINITY_UNSUPPORTED",
                 data.affinity_detail
-                or "This platform offers no thread pinning mechanism membw can "
+                or "This platform offers no thread pinning mechanism memceiling can "
                 "use, so a thread may have migrated between cores during the "
                 "run.",
             )
@@ -186,7 +186,7 @@ def build_reasons(data: ValidityInput) -> list:
                 "AFFINITY_NOT_AS_REQUESTED",
                 data.affinity_detail
                 or "The CPU affinity mask read back after pinning differed from "
-                "the mask requested, so the threads did not run where membw "
+                "the mask requested, so the threads did not run where memceiling "
                 "intended.",
             )
         )
@@ -204,7 +204,7 @@ def build_reasons(data: ValidityInput) -> list:
         reasons.append(
             reason(
                 "COMPETING_LOAD",
-                "The target CPUs were %.1f%% busy before membw started, above "
+                "The target CPUs were %.1f%% busy before memceiling started, above "
                 "the %.1f%% threshold, measured from %s."
                 % (
                     data.busy_fraction * 100.0,
@@ -307,7 +307,7 @@ def build_reasons(data: ValidityInput) -> list:
         reasons.append(
             reason(
                 "GOVERNOR_RESTORE_FAILED",
-                "membw changed the governor on request and could not verify "
+                "memceiling changed the governor on request and could not verify "
                 "that the original value was restored. The machine may have "
                 "been left in a changed power state; check it.",
             )
@@ -350,7 +350,7 @@ def build_reasons(data: ValidityInput) -> list:
                 reason(
                     "RUN_TOO_SHORT",
                     "The fastest timed repetition took %.6f s, below the "
-                    "%.3f s membw treats as the minimum for a stable figure."
+                    "%.3f s memceiling treats as the minimum for a stable figure."
                     % (data.best_seconds, data.min_run_seconds),
                 )
             )
@@ -412,7 +412,7 @@ def build_reasons(data: ValidityInput) -> list:
         reasons.append(
             reason(
                 "PER_CLUSTER_UNAVAILABLE",
-                "No CPU cluster topology could be read, so membw assumed one "
+                "No CPU cluster topology could be read, so memceiling assumed one "
                 "cluster. On a heterogeneous SoC that assumption makes the "
                 "aggregate figure hard to interpret.",
             )

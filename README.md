@@ -1,4 +1,4 @@
-# membw
+# memceiling
 
 Measure a machine's **achieved** memory bandwidth ceiling, report it against
 the theoretical peak derived from the memory configuration that could
@@ -6,7 +6,7 @@ actually be read, and attach a record of the conditions the figure was taken
 under. When those conditions invalidate the figure, say so instead of
 printing a number.
 
-`membw` is a library, a CLI and a GitHub Action.
+`memceiling` is a library, a CLI and a GitHub Action.
 
 ## Why this exists
 
@@ -23,22 +23,22 @@ part of the run.
 
 ### The author's prior measurements, which are why the tool has this shape
 
-These are first-party results measured by the author before `membw` existed.
-They are stated here as prior findings, not as output of this tool. `membw`
+These are first-party results measured by the author before `memceiling` existed.
+They are stated here as prior findings, not as output of this tool. `memceiling`
 did not produce them and does not reproduce them.
 
 - **Intel i7-12700H (DDR5).** STREAM Triad 53.67 GB/s, Copy 56.70 GB/s,
   reconciled read ceiling 53.9 GB/s, which is about 70 percent of
   theoretical. An earlier cross-paper figure of 42 GB/s was wrong and was
   corrected against a first-party receipt. That correction is the reason
-  `membw` records a provenance record at all: a number without one cannot be
+  `memceiling` records a provenance record at all: a number without one cannot be
   audited later.
 - **Raspberry Pi 5, Cortex-A76 (LPDDR4X).** 12.44 GB/s strided C read under
   the performance governor, which is 73 percent of the 17.07 GB/s
   theoretical. STREAM Triad 5.25 GB/s and Copy 5.82 GB/s, so the write path
   roughly halves against the read path, unlike DDR5 on x86. A numpy-based
   tool reported 13.79 GB/s for the same machine. That discrepancy is the
-  reason `membw` labels every figure with the code path that produced it.
+  reason `memceiling` labels every figure with the code path that produced it.
 - **Samsung Galaxy M21 (Arm big.LITTLE, normal power mode).** The big A73
   cluster alone reaches 7.51 GB/s and nearly saturates the shared
   controller. Adding four A53 cores takes it only to 7.84 GB/s, a 4 percent
@@ -46,7 +46,7 @@ did not produce them and does not reproduce them.
 
 That last result is the design requirement most tools miss. On a
 heterogeneous Arm SoC a single aggregate number does not say where the
-bandwidth came from, so `membw` measures and reports **per cluster** as well
+bandwidth came from, so `memceiling` measures and reports **per cluster** as well
 as in aggregate, and records which cores it was pinned to.
 
 ## What one run reports
@@ -66,7 +66,7 @@ as in aggregate, and records which cores it was pinned to.
 ## Install
 
 ```sh
-pip install membw
+pip install memceiling
 ```
 
 The wheel is pure Python and depends only on numpy. The compiled kernel path
@@ -74,10 +74,10 @@ is optional and is built on the target machine from C source that ships
 inside the wheel:
 
 ```sh
-membw build-c
+memceiling build-c
 ```
 
-If no C compiler is present, that command says so and `membw` uses the numpy
+If no C compiler is present, that command says so and `memceiling` uses the numpy
 path, labelling every figure accordingly. Nothing fails.
 
 From a checkout:
@@ -92,27 +92,27 @@ python -m pytest
 ### CLI
 
 ```sh
-membw                       # measure, human-readable summary
-membw --json                # measure, print the provenance envelope
-membw --json --out bw.json  # and write it to a file
-membw info                  # report what can be read, measure nothing
-membw build-c               # build the optional compiled kernels
-membw schema                # print the reason-code vocabulary
+memceiling                       # measure, human-readable summary
+memceiling --json                # measure, print the provenance envelope
+memceiling --json --out bw.json  # and write it to a file
+memceiling info                  # report what can be read, measure nothing
+memceiling build-c               # build the optional compiled kernels
+memceiling schema                # print the reason-code vocabulary
 ```
 
 Useful flags:
 
 ```sh
-membw --cpus 0-11                 # measure only these CPUs
-membw --per-cluster               # force per-cluster measurement
-membw --code-path c               # require the compiled path, do not fall back
-membw --code-path numpy           # force the portable path
-membw --repeats 10                # more timed repetitions, best is reported
-membw --min-run-seconds 0.5       # longer timed regions
-membw --llc-margin 8              # a stricter working-set margin than STREAM's 4
-membw --memory-config 4267:32:1   # supply the memory configuration yourself
-membw --include-strided           # also measure a cache-line strided read
-membw --exit-zero                 # record the verdict without failing the shell
+memceiling --cpus 0-11                 # measure only these CPUs
+memceiling --per-cluster               # force per-cluster measurement
+memceiling --code-path c               # require the compiled path, do not fall back
+memceiling --code-path numpy           # force the portable path
+memceiling --repeats 10                # more timed repetitions, best is reported
+memceiling --min-run-seconds 0.5       # longer timed regions
+memceiling --llc-margin 8              # a stricter working-set margin than STREAM's 4
+memceiling --memory-config 4267:32:1   # supply the memory configuration yourself
+memceiling --include-strided           # also measure a cache-line strided read
+memceiling --exit-zero                 # record the verdict without failing the shell
 ```
 
 Exit status is the verdict, so a script can act on it:
@@ -121,8 +121,8 @@ Exit status is the verdict, so a script can act on it:
 | --- | --- |
 | 0 | `PASS`, the figure is trustworthy |
 | 2 | `INVALID`, conditions during the run invalidate the figure |
-| 3 | `UNKNOWN`, `membw` could not establish validity |
-| 4 | `UNSUPPORTED`, `membw` cannot measure here |
+| 3 | `UNKNOWN`, `memceiling` could not establish validity |
+| 4 | `UNSUPPORTED`, `memceiling` cannot measure here |
 | 1 | an internal error |
 
 ### Library
@@ -130,7 +130,7 @@ Exit status is the verdict, so a script can act on it:
 The API is small on purpose, so a dependent can rely on it:
 
 ```python
-from membw import measure, MeasureOptions
+from memceiling import measure, MeasureOptions
 
 result = measure()
 
@@ -156,7 +156,7 @@ The other public entry points, for callers who want one piece rather than a
 whole run:
 
 ```python
-from membw import (
+from memceiling import (
     detect_topology,          # CPUs, clusters, last-level cache, RAM
     derive_theoretical_peak,  # the denominator, or UNKNOWN
     plan_buffers,             # array sizing and the margin check
@@ -180,17 +180,17 @@ build, so performance numbers from CI are interpretable.
   with:
     python-version: "3.13"
 
-- id: membw
-  uses: manunicholasjacob/membw@v0.1.0
+- id: memceiling
+  uses: manunicholasjacob/memceiling@v0.1.0
   with:
     repeats: "3"
     min-run-seconds: "0.2"
-    output-path: membw-envelope.json
+    output-path: memceiling-envelope.json
     fail-on-invalid: "false"
 
 - run: |
-    echo "ceiling ${{ steps.membw.outputs.ceiling-gb-s }} GB/s"
-    echo "verdict ${{ steps.membw.outputs.verdict }}"
+    echo "ceiling ${{ steps.memceiling.outputs.ceiling-gb-s }} GB/s"
+    echo "verdict ${{ steps.memceiling.outputs.verdict }}"
 ```
 
 Outputs: `verdict`, `ceiling-gb-s`, `ceiling-kernel`, `read-gb-s`,
@@ -213,7 +213,7 @@ provenance of any of them without knowing which produced the file.
 ```json
 {
   "schema": "measurement-provenance/1",
-  "tool": {"name": "membw", "version": "0.1.0"},
+  "tool": {"name": "memceiling", "version": "0.1.0"},
   "taken_at_utc": "2026-11-01T17:33:02Z",
   "duration_s": 42.1,
   "platform": {"system": "Linux", "release": "6.8.0", "machine": "x86_64",
@@ -234,7 +234,7 @@ one of `invalidating`, `warning`, `info`. `unreadable` names every source
 that could not be read, so a consumer can tell a clean machine from an
 unexamined one.
 
-Everything specific to `membw` is under `measurement`:
+Everything specific to `memceiling` is under `measurement`:
 
 | key | what it holds |
 | --- | --- |
@@ -266,7 +266,7 @@ and `GOVERNOR_UNKNOWN`.
 
 ### Reason codes
 
-`membw` owns these codes. `membw schema --json` prints them at runtime.
+`memceiling` owns these codes. `memceiling schema --json` prints them at runtime.
 
 **Invalidating**, so the verdict becomes `INVALID`:
 
@@ -279,10 +279,10 @@ and `GOVERNOR_UNKNOWN`.
 | `QUOTA_THROTTLE_DURING_RUN` | A cgroup CPU quota throttle counter advanced during the run. |
 | `SWAP_ACTIVE_DURING_RUN` | Pages were swapped in or out during the run. |
 | `GOVERNOR_CHANGED_DURING_RUN` | The governor was not the same before and after the run. |
-| `GOVERNOR_RESTORE_FAILED` | `membw` changed the governor on request and could not verify the restore. |
+| `GOVERNOR_RESTORE_FAILED` | `memceiling` changed the governor on request and could not verify the restore. |
 | `AFFINITY_NOT_AS_REQUESTED` | The mask actually in effect differed from the one requested. |
 | `FRACTION_ABOVE_THEORETICAL` | Achieved bandwidth exceeded the derived theoretical peak, so one of the two is wrong. |
-| `PLATFORM_UNSUPPORTED` | `membw` cannot measure on this platform. Produces `UNSUPPORTED`. |
+| `PLATFORM_UNSUPPORTED` | `memceiling` cannot measure on this platform. Produces `UNSUPPORTED`. |
 
 **Warnings**. The five marked as blocking produce `UNKNOWN` when nothing
 invalidating is present; the rest are recorded and still allow `PASS`:
@@ -345,7 +345,7 @@ Two worked examples:
 
 Sources, in the order they are tried:
 
-1. `--memory-config RATE:WIDTH:MODULES` or `MEMBW_MEMORY_CONFIG`, recorded as
+1. `--memory-config RATE:WIDTH:MODULES` or `MEMCEILING_MEMORY_CONFIG`, recorded as
    an operator override rather than a reading.
 2. On Linux, `dmidecode -t memory` (SMBIOS). Usually needs root.
 3. On Windows, `Win32_PhysicalMemory` through CIM. Needs no administrator
@@ -353,14 +353,14 @@ Sources, in the order they are tried:
 4. On Arm, the device tree. Most device trees, the Raspberry Pi's included,
    publish the memory size and nothing about the transfer rate or the bus
    width, so this path usually reports `UNKNOWN` and names the nodes it
-   looked at. Where a device tree gives a clock frequency, `membw` records
+   looked at. Where a device tree gives a clock frequency, `memceiling` records
    it and does **not** use it: a clock is not a transfer rate, and inferring
    a DDR multiplier that nobody stated is a factor-of-two error in the
    denominator.
 
 When no source yields both a rate and a width, the peak is `UNKNOWN`, the
 achieved fraction is omitted, and `THEORETICAL_PEAK_UNKNOWN` is recorded.
-`membw` never substitutes a datasheet figure for a part it recognises.
+`memceiling` never substitutes a datasheet figure for a part it recognises.
 `/proc/meminfo` contributes capacity only, never a rate.
 
 ## Why per cluster
@@ -373,7 +373,7 @@ A53-only is 4.57 GB/s. A single aggregate figure of 7.84 GB/s hides all
 three facts, and a reader cannot tell from it whether adding little cores to
 a memory-bound kernel would help.
 
-So `membw` measures each cluster on its own as well as in aggregate, with
+So `memceiling` measures each cluster on its own as well as in aggregate, with
 the same array size throughout so the figures are comparable, and reports
 the aggregate's gain over the best single cluster. It states the arithmetic
 and leaves the conclusion to the reader.
@@ -389,7 +389,7 @@ Clusters are detected from the first of these that distinguishes the CPUs:
    `PROCESSOR_RELATIONSHIP.EfficiencyClass`, which separates performance
    from efficient cores on a hybrid x86 part.
 
-If none distinguishes them, `membw` reports one cluster and records
+If none distinguishes them, `memceiling` reports one cluster and records
 `PER_CLUSTER_UNAVAILABLE` rather than implying it checked.
 
 Each worker thread is pinned to exactly one CPU before it touches any
@@ -404,17 +404,17 @@ Each array is sized to at least `--llc-margin` times the summed size of the
 last-level caches reachable from the CPUs under test, with a floor of one
 million elements. The default margin of 4 is taken from STREAM's run rules,
 which require each array to be at least four times the sum of all the
-last-level caches used in the run, so a `membw` buffer is never smaller than
+last-level caches used in the run, so a `memceiling` buffer is never smaller than
 a conforming STREAM buffer.
 
-`membw` enforces that rule in code. If available memory will not allow it,
+`memceiling` enforces that rule in code. If available memory will not allow it,
 the figure is refused with `WORKING_SET_BELOW_LLC` or
 `MEMORY_INSUFFICIENT`. If the cache size cannot be read at all, the arrays
 fall back to a 64 MiB floor and the verdict is `UNKNOWN`, never `PASS`.
 
 A single pass over such a buffer takes only a few milliseconds, which is
 short enough for the clock and the scheduler to show up in the number, so
-`membw` times several passes per repetition and divides. The pass count is
+`memceiling` times several passes per repetition and divides. The pass count is
 calibrated from one timed pass to reach `--min-run-seconds`, and it is
 recorded. Re-reading a buffer already several times larger than the cache
 does not make this a cache measurement: by the time the second pass starts,
@@ -422,7 +422,7 @@ the beginning of the buffer has long been evicted.
 
 ## Governor handling
 
-`membw` reads the governor before and after the run and refuses the figure if
+`memceiling` reads the governor before and after the run and refuses the figure if
 it changed. It does **not** change the governor itself unless explicitly
 asked with `--set-governor NAME`, which is Linux only and needs write access
 to sysfs. When asked, it records the previous value per CPU, restores it
@@ -430,7 +430,7 @@ afterwards, reads it back to confirm, and reports
 `GOVERNOR_RESTORE_FAILED` as invalidating if the restore cannot be verified.
 A tool that leaves a machine in a changed power state must say so.
 
-On Windows there is no cpufreq governor. `membw` records the active power
+On Windows there is no cpufreq governor. `memceiling` records the active power
 plan instead, names `GOVERNOR_UNKNOWN`, and lists the governor as
 unreadable, which makes the verdict `UNKNOWN`. That is the honest outcome:
 the clock policy under which the figure was taken is not recorded in a form
@@ -439,7 +439,7 @@ comparable with a Linux run.
 ## Related work
 
 Verified against primary sources (project pages, READMEs, man pages, source)
-in November 2026. The scorecard is against the four things `membw` claims:
+in November 2026. The scorecard is against the four things `memceiling` claims:
 a machine-readable provenance record, per-cluster reporting, validity
 refusal, and a CI surface.
 
@@ -449,9 +449,9 @@ bespoke notice rather than an SPDX licence, and it is specific: results may
 be published, but to be called "STREAM benchmark results" they must conform
 to the STREAM Run Rules, results from modified source or non-conforming runs
 must be clearly labelled, and the copyright holder retains the right to
-determine conformity. `membw` therefore describes its Copy and Triad as
+determine conformity. `memceiling` therefore describes its Copy and Triad as
 STREAM-convention or STREAM-style and never as STREAM results. The Run Rules
-state the array-size rule `membw` enforces: each array at least four times
+state the array-size rule `memceiling` enforces: each array at least four times
 the sum of all the last-level caches used in the run, with a floor of one
 million elements. STREAM states that rule in prose for a human to obey and
 ships no code to check it. Its own `checkSTREAMresults` validates the
@@ -484,7 +484,7 @@ its own source says why: the default block size is 1 KiB and the default
 scope is a single shared buffer, so at defaults the reported MiB/s is an L1
 store rate published under the word "memory". The code never queries a cache
 size and does no pinning. It is the clearest example of the failure mode
-`membw`'s working-set refusal exists to catch.
+`memceiling`'s working-set refusal exists to catch.
 
 **mbw** (GPL-3.0) measures copy bandwidth with three methods and is honest
 about its scope: its README calls the approach simplistic, says it is not
@@ -552,7 +552,7 @@ runners. Neither reports bandwidth. A keyword search cannot prove a
 negative across every unlisted composite action, so the claim here is that
 none is known, not that none exists.
 
-### What membw adds
+### What memceiling adds
 
 No existing tool does all four of the following, and none found does even
 three.
@@ -583,10 +583,10 @@ in CI.
 
 ## Related tools
 
-`membw` is one of three sibling tools that emit the same
+`memceiling` is one of three sibling tools that emit the same
 `measurement-provenance/1` envelope, so their records interoperate:
 
-- `membw` measures achieved memory bandwidth against theoretical peak.
+- `memceiling` measures achieved memory bandwidth against theoretical peak.
 - `benchguard` decides whether a measurement was valid, from cgroup
   throttling, thermal counters, governor, major faults and competing load.
   It owns the envelope's verdict vocabulary.
@@ -596,7 +596,7 @@ in CI.
 A consumer that can read one tool's envelope can read any of them: the
 verdict, the reasons and the unreadable-source list are in the same place
 with the same meanings, and only the `measurement` payload differs. Each
-tool documents its own `reasons[].code` values; `membw`'s are tabulated
+tool documents its own `reasons[].code` values; `memceiling`'s are tabulated
 above.
 
 ## Limitations
@@ -645,14 +645,14 @@ above.
   machine reaches it.
 - **NUMA is not modelled.** Buffers are first touched by the pinned thread
   that will use them, which gets local placement on a NUMA machine, but
-  `membw` does not sweep node-to-node combinations the way Intel MLC does.
+  `memceiling` does not sweep node-to-node combinations the way Intel MLC does.
 - **Hugepages are not requested.** Transparent hugepages, if the system
-  enables them, will apply; `membw` neither asks for them nor reports them
+  enables them, will apply; `memceiling` neither asks for them nor reports them
   as a configured input beyond the `/proc/meminfo` hugepage size.
-- **A refusal is not a diagnosis.** `membw` says the figure is untrustworthy
+- **A refusal is not a diagnosis.** `memceiling` says the figure is untrustworthy
   and names the condition. Deciding what to do about a throttling runner is
   the operator's problem.
-- **`membw` has no adoption to report.** It is newly written and unreleased.
+- **`memceiling` has no adoption to report.** It is newly written and unreleased.
   Nothing here claims otherwise.
 
 ## Development
@@ -660,8 +660,8 @@ above.
 ```sh
 pip install -e ".[dev]"
 python -m pytest -v
-python -m membw.cli info
-python -m membw.cli schema
+python -m memceiling.cli info
+python -m memceiling.cli schema
 ```
 
 The test suite deliberately does not assert any throughput value. It

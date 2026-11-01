@@ -3,7 +3,7 @@
 The public entry point is measure(). It is the whole library API that most
 callers need:
 
-    from membw import measure
+    from memceiling import measure
     result = measure()
     if result.verdict == "PASS":
         denominator = result.ceiling_gb_s
@@ -37,7 +37,7 @@ CODE_PATH_AUTO = "auto"
 class MeasureOptions:
     """Everything a caller can change about a run.
 
-    Defaults are the ones membw considers defensible: one thread per CPU,
+    Defaults are the ones memceiling considers defensible: one thread per CPU,
     STREAM's 4x cache margin, the compiled path when it is available, and no
     change to the machine's power state.
     """
@@ -104,7 +104,7 @@ class Result:
     def trustworthy(self) -> bool:
         """True only when the verdict is PASS.
 
-        A caller using membw as a roofline denominator should branch on this
+        A caller using memceiling as a roofline denominator should branch on this
         and refuse to plot rather than quietly use an INVALID figure.
         """
         return self.verdict == _schema.VERDICT_PASS
@@ -169,7 +169,7 @@ def _best_seconds(run) -> float | None:
 def _ceiling(run) -> tuple:
     """The highest achieved figure in a run, and the kernel that produced it.
 
-    membw calls this the achieved ceiling. It is deliberately the maximum
+    memceiling calls this the achieved ceiling. It is deliberately the maximum
     over the kernels rather than the read figure alone, because on some
     memory systems Copy reaches higher than a pure read and on others it
     does not, and a denominator should be the best the machine demonstrably
@@ -545,7 +545,7 @@ def _cluster_saturation(aggregate, per_cluster_runs, peak) -> dict | None:
     heterogeneous SoC whose clusters share one memory controller, the
     aggregate can sit very close to the best single cluster, in which case a
     single aggregate number tells a reader nothing about where the bandwidth
-    came from. membw reports the comparison and declines to interpret it
+    came from. memceiling reports the comparison and declines to interpret it
     beyond stating the arithmetic.
     """
     if aggregate is None or not per_cluster_runs:
@@ -587,7 +587,7 @@ def _cluster_saturation(aggregate, per_cluster_runs, peak) -> dict | None:
         "note": (
             "A small gain from adding the remaining clusters means the "
             "clusters share a memory controller that one of them already "
-            "nearly saturates. membw reports the arithmetic and leaves the "
+            "nearly saturates. memceiling reports the arithmetic and leaves the "
             "conclusion to the reader."
         ),
     }
