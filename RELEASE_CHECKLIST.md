@@ -68,9 +68,9 @@ Confirm by eye:
   and the `CHANGELOG.md` heading all say the same version. A test asserts
   the first three agree, but the release date in `CITATION.cff` is not
   checked by anything.
-- No file contains a Co-Authored-By line or any "Generated with" line.
-  `git log --format=%B | grep -i -e co-authored -e generated` should print
-  nothing.
+- No file or commit message carries an assistant co-authorship trailer or a
+  tool-generated-by line. This checks it:
+  `git log --format=%B | grep -icE 'co-auth|generat'` should print `0`.
 - `git log` author is you.
 
 ## 3. Create the GitHub repository and push
