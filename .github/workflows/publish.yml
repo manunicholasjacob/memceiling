@@ -14,7 +14,10 @@ name: publish
 on:
   push:
     tags:
-      - "v*"
+      # Full semver tags only. The moving tags that Action consumers use
+      # (v0.1, v0) must NOT start a publish: the version guard below would
+      # correctly refuse them, but only after leaving a failed run behind.
+      - "v*.*.*"
   workflow_dispatch:
 
 permissions: {}
