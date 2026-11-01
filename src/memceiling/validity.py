@@ -46,11 +46,21 @@ DEFAULT_TIMER_RESOLUTION_RATIO = 1000.0
 
 
 def reason(code: str, detail: str, severity: str | None = None) -> dict:
-    """Build one entry of the envelope's `reasons` list."""
+    """Build one entry of the envelope's `reasons` list.
+
+    The detail is normalised to a single sentence ending in a full stop. Details come
+    from several places, including strings produced by the platform probes, and one of
+    those (the no-pinning path on macOS) arrived without one, which a consumer parsing
+    these as sentences would have tripped over. Normalising here fixes the class rather
+    than the one string.
+    """
+    text = " ".join(detail.split())
+    if text and not text.endswith((".", "!", "?")):
+        text += "."
     return {
         "code": code,
         "severity": severity or severity_of(code),
-        "detail": detail,
+        "detail": text,
     }
 
 
