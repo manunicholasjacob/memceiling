@@ -10,7 +10,7 @@ Nothing yet.
 
 ## [0.1.0] - 2026-11-01
 
-First release. Not yet published to PyPI or tagged on GitHub; see
+First release, published to PyPI and tagged `v0.1.0`; see
 `RELEASE_CHECKLIST.md` for the steps that remain.
 
 ### Added

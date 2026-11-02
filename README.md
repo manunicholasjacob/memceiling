@@ -1,5 +1,10 @@
 # memceiling
 
+[![PyPI](https://img.shields.io/pypi/v/memceiling)](https://pypi.org/project/memceiling/)
+[![CI](https://github.com/manunicholasjacob/memceiling/actions/workflows/ci.yml/badge.svg)](https://github.com/manunicholasjacob/memceiling/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/pypi/pyversions/memceiling)](https://pypi.org/project/memceiling/)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 Measure a machine's **achieved** memory bandwidth ceiling, report it against
 the theoretical peak derived from the memory configuration that could
 actually be read, and attach a record of the conditions the figure was taken
@@ -652,8 +657,9 @@ above.
 - **A refusal is not a diagnosis.** `memceiling` says the figure is untrustworthy
   and names the condition. Deciding what to do about a throttling runner is
   the operator's problem.
-- **`memceiling` has no adoption to report.** It is newly written and unreleased.
-  Nothing here claims otherwise.
+- **`memceiling` has no adoption to report.** It was released on 2026-11-01 and
+  has no dependents, no citations and no outside users. Nothing here claims
+  otherwise.
 
 ## Development
 
